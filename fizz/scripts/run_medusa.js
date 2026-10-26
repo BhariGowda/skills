@@ -342,7 +342,9 @@ startLogViewer('Medusa', '#22c55e', { open: openLogs }).then(({ viewerState, app
         viewerState.closed = true;
 
         if (stopRequestedByPlateau) {
-            process.exit(0);
+            // Medusa exits 0 after a SIGINT when every test passed and 7 when one failed,
+            // so pass its code through rather than reporting the early stop as success.
+            process.exit(code || 0);
         }
 
         if (signal) {
