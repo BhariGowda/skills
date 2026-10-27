@@ -342,6 +342,13 @@ startLogViewer('Medusa', '#22c55e', { open: openLogs }).then(({ viewerState, app
         viewerState.closed = true;
 
         if (stopRequestedByPlateau) {
+            // If Medusa did not exit within the grace period we SIGKILLed it: no exit
+            // code is returned and the coverage report was never written, so surface
+            // 137 (128 + SIGKILL) like the signal path below rather than a misleading 0.
+            // Only the grace timer sends SIGKILL here; user signals set stopRequestedByUser.
+            if (signal === 'SIGKILL') {
+                process.exit(137);
+            }
             // Medusa exits 0 after a SIGINT when every test passed and 7 when one failed,
             // so pass its code through rather than reporting the early stop as success.
             process.exit(code || 0);
